@@ -1,0 +1,102 @@
+
+<?php
+	include 'povezava_baza.php';
+
+	$currentTime = time();
+
+ 	$weekDay = date('w', strtotime("now"))+5;
+
+
+	if ((((int) date('H', $currentTime)) < 14) && ($weekDay != 0 && $weekDay != 6)) {
+				$poizvedbaMalic = "SELECT glavnaJed1, glavnaJed2, glavnaJed3, solata1, solata2, solata3, sladica1, sladica2, sladica3, datum, DATE_FORMAT(DATUM,'%d. %m') AS DATUM, DAYNAME(datum) AS DanIme FROM jedilnik where datum > CURDATE() AND (DAYNAME(datum) != 'Saturday' AND DAYNAME(datum) != 'Sunday') ORDER BY datum LIMIT 1";
+	}
+
+	if((((int) date('H', $currentTime)) < 14)){
+		$bollean = true;
+	}
+	else{
+		$bollean = false;
+	}
+
+
+	@$rezultat1 = mysqli_query($con, $poizvedbaMalic);
+
+	$dan = "";
+
+	if(@mysqli_num_rows($rezultat1) > 0){
+		while ($row = $rezultat1->fetch_assoc()) {
+
+			$poizvedbaZaTaDan = "SELECT ID_user, meni, datum FROM malice WHERE datum = '".$row["datum"]."' AND ID_user = '".$_SESSION['ID']."' ";
+			$rezultat = mysqli_query($con, $poizvedbaZaTaDan);
+
+			if(($row["DanIme"]!= "Saturday") && ($row["DanIme"] != "Sunday")){
+
+					if($row["DanIme"] == "Monday"){
+						$dan = "Ponedeljek";
+					}
+					else if($row["DanIme"] == "Tuesday"){
+						$dan = "Torek";
+					}
+					else if($row["DanIme"] == "Wednestday"){
+						$dan = "Sreda";
+					}
+					else if($row["DanIme"] == "Thursday"){
+						$dan = "Četrtek";
+					}
+					else if($row["DanIme"] == "Friday"){
+						$dan = "Petek";
+					}
+
+					echo "<h3 class=''>".$dan." &nbsp</h3><h4 class='shortdate text-muted'>".$row["DATUM"]."</h4>";
+					echo "<input type='text' name='datum', value='".$row["datum"]."' hidden >";
+					if($rowZaTaDan = $rezultat->fetch_assoc() > 0){
+						echo '<div class="alert alert-danger mt-4 p-5 text-center">
+ 							 <h3>Za ta dan ste že vnesli malico.</h3>';
+ 							 if($bollean == true){
+ 							 	echo '<input class="btn btn-danger btn-block p-2  mb-3 mt-3" type="submit" value="Odjava" name="submit">';
+ 							 }
+
+						echo '</div>';
+					}
+					else{
+
+						echo "<div class='row'>";
+						if($row["glavnaJed1"] != NULL){
+						echo "
+						<div class='col-sm-4'>
+						  <h3 class='text-center mb-2'>Meni 1:</h3>
+						<button class='btn btn-success btn-block p-4 mb-1' name='submit' type='submit' value='".$row["glavnaJed1"]."'<br>".$row["glavnaJed1"]."<br> ".$row['solata1']."<br> ".$row["sladica1"]."</button>
+						</div>";
+						}
+						if($row["glavnaJed2"] != NULL){
+						echo "
+						<div class='col-sm-4'>
+						  <h3 class='text-center mb-2'>Meni 2:</h3>
+						<button class='btn btn-success btn-block p-4 mb-1' name='submit' type='submit' value='".$row["glavnaJed2"]."'<br>".$row["glavnaJed2"]."<br> ".$row['solata2']."<br> ".$row["sladica2"]."</button>
+						</div>";
+
+						}
+						if($row["glavnaJed3"] != NULL){
+						echo "
+						<div class='col-sm-4'>
+						  <h3 class='text-center mb-2'>Meni 3:</h3>
+						<button class='btn btn-success btn-block p-4 mb-1' name='submit' type='submit' value='".$row["glavnaJed3"]."'<br>".$row["glavnaJed3"]."<br> ".$row['solata3']."<br> ".$row["sladica3"]."</button>
+						</div>";
+						}
+
+						echo "</div>";
+					}
+			}
+		 }
+	}
+	else{
+		echo "<div class='alert alert-warning' role='alert'>
+						Prislo je do napake ! <br>
+						Moznosti za napake: <br>
+						- Zamudili ste vnos malice, zglasite se pri nadrejenim!<br>
+						- Ni vpisanih malic.
+					</div>";
+	}
+
+	die();
+?>
